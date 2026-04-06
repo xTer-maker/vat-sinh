@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hội Vật Làng Sình | Di sản Văn hóa Cố Đô</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: '#111827',
+                        darker: '#030712',
+                        primary: '#facc15', // Yellow-400
+                        primaryHover: '#eab308' // Yellow-500
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #030712;
+            color: #f3f4f6;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Page Transition Animations --- */
+        .page {
+            display: none;
+            flex: 1;
+        }
+        
+        .page.active {
+            display: block;
+            animation: pageEnter 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes pageEnter {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Scroll Reveal Animations --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Delay utilities for cascade effect */
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+
+        /* --- Hover Effects --- */
+        .img-hover-zoom {
+            overflow: hidden;
+            border-radius: 0.5rem;
+        }
+        
+        .img-hover-zoom img {
+            transition: transform 0.5s ease;
+        }
+        
+        .img-hover-zoom:hover img {
+            transform: scale(1.1);
+        }
+
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #1f2937;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(250, 204, 21, 0.1);
+            border-color: #facc15;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #facc15;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header / Navbar -->
+    <header class="fixed w-full z-50 bg-darker/90 backdrop-blur-md border-b border-gray-800 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0 flex items-center gap-3 cursor-pointer" onclick="navigate('home')">
+                    <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-darker font-bold text-xl">
+                        <i class="fa-solid fa-hands-holding-circle"></i>
+                    </div>
+                    <span class="font-bold text-2xl tracking-wide text-white uppercase">Vật <span class="text-primary">Làng Sình</span></span>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <nav class="hidden md:flex space-x-8">
+                    <button onclick="navigate('home')" class="nav-btn active text-primary font-semibold hover:text-primary transition-colors py-2 relative group">
+                        Trang chủ
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform origin-left transition-transform duration-300 scale-x-100"></span>
+                    </button>
+                    <button onclick="navigate('about')" class="nav-btn text-gray-300 font-semibold hover:text-primary transition-colors py-2 relative group">
+                        Giới thiệu
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform origin-left transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
+                    </button>
+                    <button onclick="navigate('activity')" class="nav-btn text-gray-300 font-semibold hover:text-primary transition-colors py-2 relative group">
+                        Hoạt động lễ hội
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform origin-left transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
+                    </button>
+                    <button onclick="navigate('gallery')" class="nav-btn text-gray-300 font-semibold hover:text-primary transition-colors py-2 relative group">
+                        Hình ảnh
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform origin-left transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
+                    </button>
+                    <button onclick="navigate('contact')" class="nav-btn text-gray-300 font-semibold hover:text-primary transition-colors py-2 relative group">
+                        Liên hệ
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary transform origin-left transition-transform duration-300 scale-x-0 group-hover:scale-x-100"></span>
+                    </button>
+                </nav>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="hidden md:hidden bg-dark border-b border-gray-800">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <button onclick="navigate('home')" class="nav-btn-mobile block w-full text-left px-3 py-2 rounded-md text-base font-medium text-primary bg-gray-900">Trang chủ</button>
+                <button onclick="navigate('about')" class="nav-btn-mobile block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">Giới thiệu</button>
+                <button onclick="navigate('activity')" class="nav-btn-mobile block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">Hoạt động lễ hội</button>
+                <button onclick="navigate('gallery')" class="nav-btn-mobile block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">Hình ảnh</button>
+                <button onclick="navigate('contact')" class="nav-btn-mobile block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-800">Liên hệ</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow pt-20">
+        
+        <!-- ==================== TRANG CHỦ ==================== -->
+        <section id="home" class="page active relative">
+            <div class="relative h-[90vh] flex items-center justify-center">
+                <!-- Background Image with Overlay -->
+                <div class="absolute inset-0 z-0">
+                    <img src="https://mia.vn/media/uploads/blog-du-lich/ve-hue-xem-hoi-vat-lang-sinh-dau-xuan-vo-cung-thu-vi-01-1638242552.jpeg" alt="Hội Vật Làng Sình" class="w-full h-full object-cover object-center" />
+                    <div class="absolute inset-0 bg-gradient-to-b from-darker/80 via-darker/60 to-darker"></div>
+                </div>
+                
+                <div class="relative z-10 text-center px-4 max-w-4xl mx-auto reveal active">
+                    <h2 class="text-primary font-semibold tracking-widest uppercase mb-3 text-sm md:text-base">Di sản văn hóa Cố Đô</h2>
+                    <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">Hội Vật <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-yellow-200">Làng Sình</span></h1>
+                    <p class="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto">Đề cao tinh thần thượng võ, rèn luyện sức khỏe và cầu mong một năm mới mưa thuận gió hòa, mùa màng bội thu.</p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button onclick="navigate('activity')" class="px-8 py-3 bg-primary text-darker font-bold rounded-full hover:bg-primaryHover hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(250,204,21,0.5)]">
+                            Khám phá Hoạt động
+                        </button>
+                        <button onclick="navigate('about')" class="px-8 py-3 bg-transparent border-2 border-gray-400 text-white font-bold rounded-full hover:border-primary hover:text-primary transition-all duration-300">
+                            Tìm hiểu Ý nghĩa
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Stats/Info -->
+            <div class="bg-dark border-t border-gray-800 py-12 relative z-10">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center reveal">
+                        <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800">
+                            <i class="fa-regular fa-calendar-days text-4xl text-primary mb-4"></i>
+                            <h3 class="text-xl font-bold text-white mb-2">Thời gian</h3>
+                            <p class="text-gray-400">Khai hội vào mùng 10 tháng Giêng âm lịch hàng năm.</p>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800">
+                            <i class="fa-solid fa-people-group text-4xl text-primary mb-4"></i>
+                            <h3 class="text-xl font-bold text-white mb-2">Cộng đồng</h3>
+                            <p class="text-gray-400">Giao lưu, thắt chặt tình làng nghĩa xóm, ít đặt nặng thắng thua.</p>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800">
+                            <i class="fa-solid fa-medal text-4xl text-primary mb-4"></i>
+                            <h3 class="text-xl font-bold text-white mb-2">Thượng võ</h3>
+                            <p class="text-gray-400">Làm đối thủ "lấm lưng, trắng bụng" hoặc nhấc bổng khỏi mặt đất.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== GIỚI THIỆU ==================== -->
+        <section id="about" class="page py-20 bg-darker">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16 reveal">
+                    <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">Ý Nghĩa & <span class="text-primary">Thực Trạng</span></h2>
+                    <div class="w-24 h-1 bg-primary mx-auto rounded-full"></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <!-- Ý nghĩa văn hóa -->
+                    <div class="reveal">
+                        <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <i class="fa-solid fa-landmark text-primary"></i> Ý nghĩa văn hóa
+                        </h3>
+                        <div class="space-y-6">
+                            <div class="card-hover bg-gray-900 p-6 rounded-xl relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                                <h4 class="text-lg font-bold text-white mb-2">Tinh thần thượng võ</h4>
+                                <p class="text-gray-400">Rèn luyện sức khỏe, sự dẻo dai và bản lĩnh cho thanh niên (xưa là để tuyển chọn binh sĩ cho quân đội chúa Nguyễn).</p>
+                            </div>
+                            <div class="card-hover bg-gray-900 p-6 rounded-xl relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                                <h4 class="text-lg font-bold text-white mb-2">Tín ngưỡng tâm linh</h4>
+                                <p class="text-gray-400">Tổ chức vào đầu xuân để cầu mong một năm mới khỏe mạnh, mưa thuận gió hòa, mùa màng bội thu.</p>
+                            </div>
+                            <div class="card-hover bg-gray-900 p-6 rounded-xl relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                                <h4 class="text-lg font-bold text-white mb-2">Gắn kết cộng đồng</h4>
+                                <p class="text-gray-400">Là dịp để người dân địa phương và du khách giao lưu, thắt chặt tình làng nghĩa xóm thông qua các trận đấu vui vẻ, ít đặt nặng thắng thua.</p>
+                            </div>
+                            <div class="card-hover bg-gray-900 p-6 rounded-xl relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                                <h4 class="text-lg font-bold text-white mb-2">Bảo tồn di sản</h4>
+                                <p class="text-gray-400">Duy trì nét đẹp truyền thống của vùng đất Cố đô, kết hợp quảng bá hình ảnh làng nghề (tranh làng Sình) đến bạn bè quốc tế.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thực trạng quảng bá -->
+                    <div class="reveal delay-200">
+                        <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <i class="fa-solid fa-bullhorn text-primary"></i> Thực trạng quảng bá
+                        </h3>
+                        <div class="space-y-6">
+                            <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                                <div class="flex items-start gap-4">
+                                    <div class="bg-green-500/20 text-green-400 p-3 rounded-lg"><i class="fa-solid fa-check"></i></div>
+                                    <div>
+                                        <h4 class="text-lg font-bold text-white mb-1">Chủ động và Đa dạng</h4>
+                                        <p class="text-gray-400 text-sm">Chính quyền và người dân đã tích cực đưa hình ảnh hội vật lên mạng xã hội, báo chí và truyền hình. Lễ hội không còn gói gọn trong làng mà trở thành sự kiện điểm nhấn của du lịch Huế dịp Tết.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                                <div class="flex items-start gap-4">
+                                    <div class="bg-blue-500/20 text-blue-400 p-3 rounded-lg"><i class="fa-solid fa-link"></i></div>
+                                    <div>
+                                        <h4 class="text-lg font-bold text-white mb-1">Gắn liền với Di sản</h4>
+                                        <p class="text-gray-400 text-sm">Quảng bá hội vật luôn đi đôi với thương hiệu Tranh dân gian làng Sình, tạo thành một gói trải nghiệm văn hóa "xem vật - làm tranh" hấp dẫn du khách.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
+                                <div class="flex items-start gap-4">
+                                    <div class="bg-red-500/20 text-red-400 p-3 rounded-lg"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                                    <div>
+                                        <h4 class="text-lg font-bold text-white mb-1">Hạn chế về tính thời điểm</h4>
+                                        <p class="text-gray-400 text-sm">Do hội chỉ diễn ra duy nhất vào mùng 10 tháng Giêng, việc duy trì sức hút và quảng bá trong các tháng còn lại trong năm vẫn là một thách thức lớn.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image illustration -->
+                        <div class="mt-8 img-hover-zoom rounded-xl h-48">
+                            <img src="https://mia.vn/media/uploads/blog-du-lich/ve-hue-xem-hoi-vat-lang-sinh-dau-xuan-vo-cung-thu-vi-04-1638242552.jpeg" class="w-full h-full object-cover" alt="Hội vật làng Sình">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== HOẠT ĐỘNG LỄ HỘI ==================== -->
+        <section id="activity" class="page py-20 bg-dark">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16 reveal">
+                    <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">Đặc Điểm <span class="text-primary">Nổi Bật</span></h2>
+                    <div class="w-24 h-1 bg-primary mx-auto rounded-full"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+                    <div class="card-hover bg-gray-900 rounded-2xl p-8 text-center reveal">
+                        <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl text-primary">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Thời gian</h3>
+                        <p class="text-gray-400">Khai hội vào mùng 10 tháng Giêng âm lịch.</p>
+                    </div>
+                    
+                    <div class="card-hover bg-gray-900 rounded-2xl p-8 text-center reveal delay-100">
+                        <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl text-primary">
+                            <i class="fa-solid fa-bullseye"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-3">Mục đích</h3>
+                        <p class="text-gray-400">Rèn luyện sức khỏe và cầu mong mùa màng thuận lợi.</p>
+                    </div>
+
+                    <div class="card-hover bg-gray-900 rounded-2xl p-8 text-center reveal delay-200">
+                        <div class="w-16 h-16 bg-gray-800 r
