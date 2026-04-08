@@ -117,7 +117,70 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #facc15;
         }
+
+        /* --- Custom Additions for Firebase & Admin --- */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            min-width: 280px;
+            padding: 16px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform: translateX(120%);
+            opacity: 0;
+        }
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .toast.success { background-color: #10b981; border-left: 4px solid #047857; }
+        .toast.error { background-color: #ef4444; border-left: 4px solid #b91c1c; }
+        
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #030712;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Admin Modal Transitions */
+        .admin-modal {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .admin-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .admin-modal-content {
+            transform: translateY(-30px);
+            transition: transform 0.3s ease;
+        }
+        .admin-modal.active .admin-modal-content {
+            transform: translateY(0);
+        }
     </style>
+    
+    <!-- Google reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body class="antialiased">
 
@@ -442,27 +505,32 @@
                 </div>
 
                 <div class="bg-gray-900 p-8 md:p-10 rounded-2xl border border-gray-800 reveal shadow-2xl">
-                    <form onsubmit="event.preventDefault(); alert('Cảm ơn bạn đã gửi liên hệ! Tính năng đang trong quá trình thử nghiệm.');" class="space-y-6">
+                    <form id="contactForm" onsubmit="window.handleContactSubmit(event);" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-400 mb-2">Họ và tên</label>
-                                <input type="text" class="w-full bg-darker border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors" placeholder="Nhập tên của bạn">
+                                <input type="text" id="contactName" required class="w-full bg-darker border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors" placeholder="Nhập tên của bạn">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-400 mb-2">Email</label>
-                                <input type="email" class="w-full bg-darker border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors" placeholder="Địa chỉ email">
+                                <input type="email" id="contactEmail" required class="w-full bg-darker border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors" placeholder="Địa chỉ email">
                             </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-400 mb-2">Chủ đề</label>
-                            <input type="text" class="w-full bg-darker border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors" placeholder="Ví dụ: Đóng góp ý tưởng quảng bá">
+                            <input type="text" id="contactSubject" required class="w-full bg-darker border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors" placeholder="Ví dụ: Đóng góp ý tưởng quảng bá">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-400 mb-2">Nội dung</label>
-                            <textarea rows="5" class="w-full bg-darker border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors resize-none" placeholder="Nhập nội dung tin nhắn..."></textarea>
+                            <textarea id="contactMessage" required rows="5" class="w-full bg-darker border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors resize-none" placeholder="Nhập nội dung tin nhắn..."></textarea>
                         </div>
-                        <button type="submit" class="w-full bg-primary text-darker font-bold text-lg py-4 rounded-lg hover:bg-primaryHover transition-colors shadow-lg shadow-yellow-500/20">
-                            Gửi Tin Nhắn
+                        
+                        <!-- Google reCAPTCHA v2 (Test Key cho phép test local/github pages) -->
+                        <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+
+                        <button type="submit" id="submitBtn" class="w-full bg-primary text-darker font-bold text-lg py-4 rounded-lg hover:bg-primaryHover transition-all shadow-lg shadow-yellow-500/20 flex justify-center items-center gap-3">
+                            <span>Gửi Tin Nhắn</span>
+                            <div id="submitSpinner" class="spinner"></div>
                         </button>
                     </form>
                 </div>
@@ -479,8 +547,8 @@
                 <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-gray-700 transition-all"><i class="fa-brands fa-youtube"></i></a>
                 <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-gray-700 transition-all"><i class="fa-brands fa-tiktok"></i></a>
             </div>
-            <p class="text-gray-500 font-medium">© 2026 Copyright by Nhóm 1 Tổ 3</p>
-            <p class="text-gray-500 font-medium">Email liên hệ: trannguyen200829@gmail.com</p>
+            <!-- Trigger ẩn: Click đúp vào dòng chữ bản quyền này để mở Admin -->
+            <p class="text-gray-500 font-medium select-none cursor-text" ondblclick="window.openAdminLogin()" title="Double click">© 2026 Nhóm 1 Tổ 3</p>
         </div>
     </footer>
 
@@ -586,7 +654,273 @@
             triggerReveal();
         };
     </script>
+
+    <!-- Container cho Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Admin Login Modal -->
+    <div id="adminLoginModal" class="admin-modal fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md">
+        <div class="admin-modal-content bg-gray-900 border border-gray-700 p-8 rounded-2xl shadow-2xl w-full max-w-md relative">
+            <button onclick="window.closeAdminLogin()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl text-primary"><i class="fa-solid fa-user-shield"></i></div>
+                <h2 class="text-2xl font-bold text-white">Quản Trị Viên</h2>
+            </div>
+            <form id="adminLoginForm" onsubmit="window.handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Tài khoản</label>
+                    <input type="text" id="adminUser" required class="w-full bg-darker border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-primary focus:outline-none transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Mật khẩu</label>
+                    <input type="password" id="adminPass" required class="w-full bg-darker border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-primary focus:outline-none transition-colors">
+                </div>
+                
+                <!-- Login reCAPTCHA -->
+                <div class="g-recaptcha flex justify-center mt-2" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+                
+                <button type="submit" class="w-full bg-primary text-darker font-bold py-3 rounded-lg hover:bg-primaryHover transition-colors shadow-lg mt-4">Đăng Nhập Dashboard</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard Modal -->
+    <div id="adminDashboardModal" class="admin-modal fixed inset-0 z-[100] bg-darker overflow-y-auto">
+        <div class="admin-modal-content max-w-7xl mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-gray-800 pb-4 gap-4">
+                <h1 class="text-3xl font-bold text-white flex items-center"><i class="fa-solid fa-shield-halved text-primary mr-3"></i>Dashboard <span class="text-primary ml-2">Tin Nhắn</span></h1>
+                <div class="flex gap-3">
+                    <button onclick="window.refreshMessages()" class="px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition shadow"><i class="fa-solid fa-rotate-right mr-2"></i>Làm mới</button>
+                    <button onclick="window.closeAdminDashboard()" class="px-5 py-2.5 bg-red-600/20 border border-red-600/30 text-red-500 rounded-lg hover:bg-red-600/40 hover:text-red-400 transition shadow"><i class="fa-solid fa-right-from-bracket mr-2"></i>Đóng / Thoát</button>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                            <tr class="bg-gray-800/80 text-gray-400 text-sm uppercase tracking-wider">
+                                <th class="px-6 py-4 font-semibold w-1/6">Thời gian</th>
+                                <th class="px-6 py-4 font-semibold w-1/5">Người gửi (IP)</th>
+                                <th class="px-6 py-4 font-semibold w-1/5">Chủ đề & Email</th>
+                                <th class="px-6 py-4 font-semibold w-2/5">Nội dung</th>
+                                <th class="px-6 py-4 font-semibold text-center w-24">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="messagesTableBody" class="divide-y divide-gray-800 text-gray-300">
+                            <!-- Data injected here -->
+                            <tr><td colspan="5" class="text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-primary mb-2 block"></i> Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK & Custom Logic Module -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // Cấu hình Firebase theo yêu cầu
+        const firebaseConfig = {
+            apiKey: "AIzaSyAj4p4yHlbv3Y5hyLToU5hs5uKEQab9QnI",
+            authDomain: "data-lien-he.firebaseapp.com",
+            projectId: "data-lien-he",
+            storageBucket: "data-lien-he.firebasestorage.app",
+            messagingSenderId: "778929411735",
+            appId: "1:778929411735:web:8cf8b81a78b141f788bbd2",
+            measurementId: "G-2BKBP06B1Y"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let unsubscribeMessages = null;
+
+        // --- Hệ thống Toast Notification ---
+        window.showToast = (message, type = 'success') => {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? '<i class="fa-solid fa-circle-check text-xl"></i>' : '<i class="fa-solid fa-circle-xmark text-xl"></i>';
+            toast.innerHTML = `${icon} <span class="text-sm">${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400); 
+            }, 3500);
+        };
+
+        // --- API lấy IP Client ---
+        const getIP = async () => {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                return data.ip;
+            } catch (e) {
+                return 'Không xác định';
+            }
+        };
+
+        // --- Logic Gửi Form Liên Hệ ---
+        window.handleContactSubmit = async (e) => {
+            e.preventDefault();
+            
+            // Lấy response từ form liên hệ (form đầu tiên = index 0)
+            const recaptchaResponse = grecaptcha.getResponse(0);
+            if (!recaptchaResponse) {
+                window.showToast('Vui lòng xác minh "Tôi không phải người máy"!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('submitSpinner');
+            const btnText = btn.querySelector('span');
+
+            // Hiệu ứng UX: Disable nút, xoay spinner
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed', 'scale-[0.98]');
+            spinner.style.display = 'block';
+            btnText.innerText = 'Hệ thống đang xử lý...';
+
+            try {
+                const userIp = await getIP();
+                
+                await addDoc(collection(db, "messages"), {
+                    name: document.getElementById('contactName').value,
+                    email: document.getElementById('contactEmail').value,
+                    subject: document.getElementById('contactSubject').value,
+                    message: document.getElementById('contactMessage').value,
+                    ip: userIp,
+                    timestamp: serverTimestamp() // Lưu thời gian máy chủ Firebase
+                });
+
+                window.showToast('Tin nhắn đã được gửi thành công!', 'success');
+                document.getElementById('contactForm').reset();
+                grecaptcha.reset(0); // Reset captcha sau khi gửi
+            } catch (error) {
+                console.error("Lỗi Firebase: ", error);
+                window.showToast('Gửi thất bại. Vui lòng kiểm tra quyền Firestore Rules!', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed', 'scale-[0.98]');
+                spinner.style.display = 'none';
+                btnText.innerText = 'Gửi Tin Nhắn';
+            }
+        };
+
+        // --- Logic Admin Đăng Nhập ---
+        window.openAdminLogin = () => {
+            document.getElementById('adminLoginModal').classList.add('active');
+        };
+        
+        window.closeAdminLogin = () => {
+            document.getElementById('adminLoginModal').classList.remove('active');
+            document.getElementById('adminLoginForm').reset();
+            try { grecaptcha.reset(1); } catch(e){} // form login là index 1
+        };
+
+        window.handleAdminLogin = (e) => {
+            e.preventDefault();
+            
+            const recaptchaResponse = grecaptcha.getResponse(1);
+            if (!recaptchaResponse) {
+                window.showToast('Vui lòng xác minh Captcha để tiếp tục!', 'error');
+                return;
+            }
+
+            const user = document.getElementById('adminUser').value;
+            const pass = document.getElementById('adminPass').value;
+
+            if (user === 'admin' && pass === 'trannguyen200829@') {
+                window.closeAdminLogin();
+                window.showToast('Đăng nhập quản trị viên thành công!', 'success');
+                openAdminDashboard();
+            } else {
+                window.showToast('Tài khoản hoặc mật khẩu không chính xác!', 'error');
+            }
+        };
+
+        // --- Logic Dashboard & Firebase Realtime ---
+        const openAdminDashboard = () => {
+            document.getElementById('adminDashboardModal').classList.add('active');
+            window.refreshMessages();
+        };
+
+        window.closeAdminDashboard = () => {
+            document.getElementById('adminDashboardModal').classList.remove('active');
+            if (unsubscribeMessages) {
+                unsubscribeMessages(); // Ngắt kết nối realtime để tiết kiệm tài nguyên
+                unsubscribeMessages = null;
+            }
+        };
+
+        window.refreshMessages = () => {
+            const tbody = document.getElementById('messagesTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-10"><i class="fa-solid fa-circle-notch fa-spin text-2xl text-primary"></i><p class="mt-2 text-gray-500">Đang đồng bộ dữ liệu...</p></td></tr>';
+
+            // Query sắp xếp tin nhắn mới nhất lên đầu
+            const q = query(collection(db, "messages"), orderBy("timestamp", "desc"));
+            
+            if (unsubscribeMessages) unsubscribeMessages();
+            
+            // onSnapshot: Lắng nghe realtime từ DB
+            unsubscribeMessages = onSnapshot(q, (querySnapshot) => {
+                tbody.innerHTML = ''; 
+                
+                if (querySnapshot.empty) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-12 text-gray-500 text-lg"><i class="fa-regular fa-folder-open text-4xl mb-3 block opacity-50"></i>Hộp thư đến trống.</td></tr>';
+                    return;
+                }
+
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const dateObj = data.timestamp ? new Date(data.timestamp.toDate()) : null;
+                    const dateStr = dateObj ? `${dateObj.toLocaleTimeString('vi-VN')} <br> <span class="text-xs text-gray-500">${dateObj.toLocaleDateString('vi-VN')}</span>` : 'Đang xử lý...';
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-800/40 transition-colors group border-b border-gray-800/50 last:border-0";
+                    tr.innerHTML = `
+                        <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-300">${dateStr}</td>
+                        <td class="px-6 py-5">
+                            <div class="font-bold text-white text-base">${data.name}</div>
+                            <div class="text-xs text-primary font-mono mt-1 bg-primary/10 inline-block px-2 py-0.5 rounded">IP: ${data.ip || 'N/A'}</div>
+                        </td>
+                        <td class="px-6 py-5">
+                            <div class="text-sm font-semibold text-gray-200 mb-1">${data.subject}</div>
+                            <div class="text-xs"><a href="mailto:${data.email}" class="text-gray-400 hover:text-white transition"><i class="fa-regular fa-envelope mr-1"></i>${data.email}</a></div>
+                        </td>
+                        <td class="px-6 py-5">
+                            <div class="text-sm text-gray-300 bg-gray-950 p-3 rounded-lg border border-gray-800 break-words whitespace-pre-wrap">${data.message}</div>
+                        </td>
+                        <td class="px-6 py-5 text-center">
+                            <button onclick="window.deleteMessage('${docSnap.id}')" class="text-red-500 hover:text-white w-10 h-10 rounded-full hover:bg-red-600 transition shadow-lg opacity-40 group-hover:opacity-100 transform group-hover:scale-110" title="Xóa tin nhắn">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }, (error) => {
+                console.error("Lỗi đồng bộ Firebase:", error);
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500">Lỗi khi tải dữ liệu! Cần cấp quyền Firestore Database (Security Rules).</td></tr>';
+            });
+        };
+
+        window.deleteMessage = async (id) => {
+            // Xác nhận mượt bằng logic cơ bản (bạn có thể thay thế bằng Modal tuỳ ý)
+            if (confirm('⚠️ Bạn có chắc chắn muốn xóa vĩnh viễn tin nhắn này không?')) {
+                try {
+                    await deleteDoc(doc(db, "messages", id));
+                    window.showToast('Đã xóa thành công!', 'success');
+                } catch (error) {
+                    console.error("Lỗi xoá Firebase: ", error);
+                    window.showToast('Không thể xóa! Kiểm tra quyền hệ thống.', 'error');
+                }
+            }
+        };
+    </script>
 </body>
 </html>
-
-
