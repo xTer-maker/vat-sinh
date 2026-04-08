@@ -121,7 +121,7 @@
         /* --- Custom Additions for Firebase & Admin --- */
         .toast-container {
             position: fixed;
-            bottom: 20px;
+            bottom: 85px; /* Nâng lên để không đè vào nút Admin */
             right: 20px;
             z-index: 9999;
             display: flex;
@@ -160,19 +160,19 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Admin Modal Transitions */
+        /* Admin Modal Transitions (Fade + Slide Up) */
         .admin-modal {
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .admin-modal.active {
             opacity: 1;
             pointer-events: auto;
         }
         .admin-modal-content {
-            transform: translateY(-30px);
-            transition: transform 0.3s ease;
+            transform: translateY(40px); /* Đổi thành trượt từ dưới lên */
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .admin-modal.active .admin-modal-content {
             transform: translateY(0);
@@ -547,10 +547,14 @@
                 <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-gray-700 transition-all"><i class="fa-brands fa-youtube"></i></a>
                 <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:text-primary hover:bg-gray-700 transition-all"><i class="fa-brands fa-tiktok"></i></a>
             </div>
-            <!-- Trigger ẩn: Click đúp vào dòng chữ bản quyền này để mở Admin -->
-            <p class="text-gray-500 font-medium select-none cursor-text" ondblclick="window.openAdminLogin()" title="Double click">© 2026 Nhóm 1 Tổ 3</p>
+            <p class="text-gray-500 font-medium select-none">© 2026 Nhóm 1 Tổ 3</p>
         </div>
     </footer>
+
+    <!-- Admin Trigger Icon (Góc dưới phải) -->
+    <div onclick="window.checkAdminState()" class="fixed bottom-5 right-5 z-[90] w-11 h-11 bg-gray-900 border border-gray-700 rounded-full flex items-center justify-center cursor-pointer opacity-30 hover:opacity-100 transition-all duration-300 shadow-lg hover:shadow-primary/20 group">
+        <i class="fa-solid fa-lock text-gray-400 group-hover:text-primary transition-colors"></i>
+    </div>
 
     <!-- JavaScript for SPA and Animations -->
     <script>
@@ -689,9 +693,10 @@
         <div class="admin-modal-content max-w-7xl mx-auto px-4 py-8">
             <div class="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-gray-800 pb-4 gap-4">
                 <h1 class="text-3xl font-bold text-white flex items-center"><i class="fa-solid fa-shield-halved text-primary mr-3"></i>Dashboard <span class="text-primary ml-2">Tin Nhắn</span></h1>
-                <div class="flex gap-3">
+                <div class="flex gap-3 flex-wrap justify-end">
                     <button onclick="window.refreshMessages()" class="px-5 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition shadow"><i class="fa-solid fa-rotate-right mr-2"></i>Làm mới</button>
-                    <button onclick="window.closeAdminDashboard()" class="px-5 py-2.5 bg-red-600/20 border border-red-600/30 text-red-500 rounded-lg hover:bg-red-600/40 hover:text-red-400 transition shadow"><i class="fa-solid fa-right-from-bracket mr-2"></i>Đóng / Thoát</button>
+                    <button onclick="window.closeAdminDashboard()" class="px-5 py-2.5 bg-gray-700 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-600 hover:text-white transition shadow"><i class="fa-solid fa-eye-slash mr-2"></i>Đóng (Ẩn)</button>
+                    <button onclick="window.logoutAdmin()" class="px-5 py-2.5 bg-red-600/20 border border-red-600/30 text-red-500 rounded-lg hover:bg-red-600/40 hover:text-red-400 transition shadow"><i class="fa-solid fa-right-from-bracket mr-2"></i>Đăng xuất</button>
                 </div>
             </div>
 
@@ -811,7 +816,22 @@
             }
         };
 
+        // --- CẤU HÌNH THÔNG TIN ĐĂNG NHẬP ADMIN ---
+        // Hướng dẫn đổi mật khẩu: Thay đổi chuỗi giá trị trong ngoặc kép bên dưới
+        const ADMIN_USER = "admin";
+        const ADMIN_PASS = "trannguyen200829@";
+
         // --- Logic Admin Đăng Nhập ---
+        window.checkAdminState = () => {
+            // Kiểm tra trong localStorage xem đã login chưa
+            const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
+            if (isLoggedIn === 'true') {
+                openAdminDashboard(); // Nếu đã login, mở thẳng dashboard
+            } else {
+                window.openAdminLogin(); // Chưa login thì mở modal form
+            }
+        };
+
         window.openAdminLogin = () => {
             document.getElementById('adminLoginModal').classList.add('active');
         };
@@ -834,13 +854,23 @@
             const user = document.getElementById('adminUser').value;
             const pass = document.getElementById('adminPass').value;
 
-            if (user === 'admin' && pass === 'trannguyen200829@') {
+            if (user === ADMIN_USER && pass === ADMIN_PASS) {
+                // Lưu trạng thái đăng nhập vào trình duyệt
+                localStorage.setItem('isAdminLoggedIn', 'true');
+                
                 window.closeAdminLogin();
                 window.showToast('Đăng nhập quản trị viên thành công!', 'success');
                 openAdminDashboard();
             } else {
                 window.showToast('Tài khoản hoặc mật khẩu không chính xác!', 'error');
             }
+        };
+
+        window.logoutAdmin = () => {
+            // Xoá trạng thái lưu login để bắt đăng nhập lại lần sau
+            localStorage.removeItem('isAdminLoggedIn');
+            window.closeAdminDashboard();
+            window.showToast('Đã đăng xuất thành công!', 'success');
         };
 
         // --- Logic Dashboard & Firebase Realtime ---
